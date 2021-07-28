@@ -1,0 +1,25 @@
+local dumper_s = {
+   inpfile = 'todump.lua';
+   outfile = 'constdmp.log';
+};
+
+local r = readfile(dumper_s.inpfile);
+local sig = assert(r:match('(%a%[%a%])%s-=%s-%b()[\r\n;]'), '[cons dumper] : couldnt grab first'); --match for later
+local save_hook = ('writefile(%q, cons);warn('flushed onto outfile, took\32' .. %s .. '\32seconds.');');
+sig = sig:gsub('[%[%]]', '%%%1');
+r = r:gsub(('(%s%%s-=%%s-(%%a)[\r\n;])'):format(sig), 'cons = cons.. %2.. '\n';\32%1');
+r = r:gsub('return%s-%(?function%(%.+%).-end%)', 'return (function(...)'.. save_hook:format(dumper_s.outfile, ('tick() - %.4f'):format(tick())) .. 'end)');
+xpcall(assert(loadstring('local cons = '';\n'.. r), '[cons dumper] : error in script, error when syntax?'), function(msg)
+   warn('runtime error : '.. msg);
+end);
+
+
+if you want to dump a PSU Obfuscated script file,
+change inputfile to the file name that you want to dump,
+the file must be located at the workspace folder,
+after you executed the script and it printed "flushed onto etc",
+check your workspace folder for the output file, also stops the script itself from running. 
+
+
+
+TL;DR - to use this dumper your script doesn't have to be beautified, but if you wanna beautify it then please do not rename the varaibles.
